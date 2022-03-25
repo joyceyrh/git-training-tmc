@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2021 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
@@ -90,90 +90,6 @@ public class DataMasking {
             super(s);
             System.out.println(o);
         }
-
-    }
-
-    /**
-     * createMD2: Calculate MD2 hash value from String.
-     * warning: this is not considered a secure function.
-     *
-     *
-     * {talendTypes} String
-     *
-     * {Category} Data Masking
-     *
-     * {param} string("foo") message: The string need to be masked.
-     *
-     * {example} createMD2("foo") return is d11f8ce29210b4b50c5e67533b699d02
-     *
-     *
-     */
-    public static String createMD2(String message) {
-        if (message == null) {
-            return "Input String for MD2 calculation is missing"; //$NON-NLS-1$
-        } /* MD2 Calculation */
-        MessageDigest md2Instance = null;
-        try {
-            md2Instance = MessageDigest.getInstance("MD2"); //$NON-NLS-1$
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-        md2Instance.reset();
-        md2Instance.update(message.getBytes());
-        byte[] result = md2Instance.digest();
-
-        /* Return */
-        StringBuffer hexString = new StringBuffer();
-        for (byte element : result) {
-            if (element <= 15 && element >= 0) {
-                hexString.append("0"); //$NON-NLS-1$
-            }
-            hexString.append(Integer.toHexString(0xFF & element));
-        }
-        return hexString.toString();
-
-    }
-
-    /**
-     * createMD5: Calculate MD5 hash value from String.
-     * warning: this is not considered a secure function.
-     *
-     *
-     * {talendTypes} String
-     *
-     * {Category} Data Masking
-     *
-     * {param} string("foo") message: The string need to be masked.
-     *
-     * {example} createMD5("foo") result is acbd18db4cc2f85cedef654fccc4a4d8
-     *
-     */
-
-    public static String createMD5(String message) {
-        if (message == null) {
-            return "Input String for MD5 calculation is missing"; //$NON-NLS-1$
-        }
-
-        /* Calculation */
-        MessageDigest thisMD5 = null;
-        try {
-            thisMD5 = MessageDigest.getInstance("MD5"); //$NON-NLS-1$
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-        thisMD5.reset();
-        thisMD5.update(message.getBytes());
-        byte[] result = thisMD5.digest();
-
-        /* Return */
-        StringBuffer hexString = new StringBuffer();
-        for (byte element : result) {
-            if (element <= 15 && element >= 0) {
-                hexString.append("0"); //$NON-NLS-1$
-            }
-            hexString.append(Integer.toHexString(0xFF & element));
-        }
-        return hexString.toString();
 
     }
 
@@ -273,51 +189,6 @@ public class DataMasking {
     }
 
     /**
-     * Encrypt String: Encrypts a string using AES 128 .
-     * warning: this is not considered a secure function.
-     *
-     *
-     * {talendTypes} String
-     *
-     * {Category} Data Masking
-     *
-     * {param} String("foo") encryptString: The string to be encrypted.
-     * 
-     * {param} byte[](new byte[] { 'T', 'a', 'l', 'e', 'n', 'd', 's', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' })
-     * keyValue: the
-     * key material of the secret key. The contents of the array are copied to protect against subsequent modification.
-     * 
-     * {example} encryptAES("foo", new byte[] { 'T', 'a', 'l', 'e', 'n', 'd', 's', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' })
-     * result is UQ0VJZq5ymFkMYQeDrPi0A==
-     *
-     * @deprecated use {@link #encryptAESGCM(String, String, int)} instead of it
-     * 
-     */
-
-    @Deprecated
-    public static String encryptAES(String encryptString, byte[] keyValue) {
-
-        if (encryptString == null || keyValue == null) {
-            return NULL_PARAMETER_MESSAGE;
-        }
-        if (encryptString.length() == 0) {
-            return EMPTY_PARAMETER_MESSAGE;
-        }
-        try {
-            Key key = new SecretKeySpec(keyValue, ALGO);
-            Cipher cipher = Cipher.getInstance(ALGO);
-            cipher.init(Cipher.ENCRYPT_MODE, key);
-            byte[] encVal = cipher.doFinal(encryptString.getBytes());
-            String encryptedValue = b64Encoder.encode(encVal);
-            return encryptedValue;
-
-        } catch (Exception e) {
-            throw new DataMaskingRoutineException(e.getMessage(), e);
-        }
-    }
-
-
-    /**
      * Encrypt String: Encrypts a string using AES GCM 128 .
      * 
      * {talendTypes} String
@@ -368,54 +239,6 @@ public class DataMasking {
 
         try {
             return encrypt(encryptString, mainKey, ivLength);
-        } catch (Exception e) {
-            throw new DataMaskingRoutineException(e.getMessage(), e);
-        }
-    }
-
-
-
-    /**
-     * decrypt String: Decrypts a string using AES 128.
-     * warning: this is not considered a secure function.
-     *
-     *
-     * {talendTypes} String
-     *
-     * {Category} Data Masking
-     *
-     * {param} String("UQ0VJZq5ymFkMYQeDrPi0A==") encryptedString: The string to be decrypted.
-     *
-     * {param} byte[](new byte[] { 'T', 'a', 'l', 'e', 'n', 'd', 's', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' })
-     * keyValue: the key material of the secret key. The contents of the array are copied to protect against subsequent
-     * modification.
-     * 
-     * {example} decryptAES("UQ0VJZq5ymFkMYQeDrPi0A==",new byte[] { 'T', 'a', 'l', 'e', 'n', 'd', 's', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' })
-     * result is "foo"
-     * 
-     * @deprecated use {@link #decryptAESGCM(String, String, int)} instead of it
-     * 
-     */
-
-    @Deprecated
-    public static String decryptAES(String encryptedString, byte[] keyValue) {
-
-        if (encryptedString == null || keyValue == null) {
-            return NULL_PARAMETER_MESSAGE;
-        }
-
-        if (encryptedString.length() == 0) {
-            return EMPTY_PARAMETER_MESSAGE;
-        }
-        try {
-            Key key = new SecretKeySpec(keyValue, ALGO);
-            Cipher cipher = Cipher.getInstance(ALGO);
-            cipher.init(Cipher.DECRYPT_MODE, key);
-            byte[] decordedValue = b64Dencoder.decodeBuffer(encryptedString);
-            byte[] decValue = cipher.doFinal(decordedValue);
-            String decryptedValue = new String(decValue);
-            return decryptedValue;
-
         } catch (Exception e) {
             throw new DataMaskingRoutineException(e.getMessage(), e);
         }
@@ -477,110 +300,6 @@ public class DataMasking {
     public static String decryptAESGCM(String encryptedString, String mainKey) {
 
         return decryptAESGCM(encryptedString, mainKey, DEFAULT_IV_LENGTH);
-    }
-
-    /**
-     * Encrypt String: Encrypts a string using DES .
-     * warning: this is not considered a secure function.
-     *
-     *
-     * {talendTypes} String
-     *
-     * {Category} Data Masking
-     *
-     * {param} String("foo") unencryptedString: The string to be encrypted.
-     *
-     * {param} String("ThisIsSecretEncryptionKey") myEncryptionKey: the string with the DES key material.
-     *
-     * {example} encryptDES("foo") result is DmNj+x2LUXA=
-     *
-     * @throws Exception
-     */
-
-    public static String encryptDES(String unencryptedString, String myEncryptionKey) {
-
-        if (unencryptedString == null || myEncryptionKey == null) {
-            return NULL_PARAMETER_MESSAGE;
-        }
-        if (unencryptedString.length() == 0) {
-            return EMPTY_PARAMETER_MESSAGE;
-        }
-        try {
-            String encryptedString = null;
-
-            String myEncryptionScheme = DES_ENCRYPTION_SCHEME;
-            byte[] keyAsBytes = myEncryptionKey.getBytes(UNICODE_FORMAT);
-            KeySpec myKeySpec = new DESKeySpec(keyAsBytes);
-            SecretKeyFactory mySecretKeyFactory = SecretKeyFactory.getInstance(myEncryptionScheme);
-            Cipher encipher = Cipher.getInstance(myEncryptionScheme);
-            SecretKey key = mySecretKeyFactory.generateSecret(myKeySpec);
-
-            encipher.init(Cipher.ENCRYPT_MODE, key);
-            byte[] plainText = unencryptedString.getBytes(UNICODE_FORMAT);
-            byte[] encryptedText = encipher.doFinal(plainText);
-            encryptedString = b64Encoder.encode(encryptedText);
-
-            return encryptedString;
-
-        } catch (Exception e) {
-            throw new DataMaskingRoutineException(e.getMessage());
-        }
-
-    }
-
-    /**
-     * Decrypt String: Decrypts a string using DES .
-     * warning: this is not considered a secure function.
-     *
-     *
-     * {talendTypes} String
-     *
-     * {Category} Data Masking
-     *
-     * {param} String("DmNj+x2LUXA=") encryptedString: the string with the DES key material.
-     *
-     * {param} String("ThisIsSecretEncryptionKey") myDecryptionKey: The string to be encrypted.
-     *
-     * {example} decryptDES("DmNj+x2LUXA=") result is "foo"
-     *
-     */
-
-    public static String decryptDES(String encryptedString, String myDecryptionKey) {
-
-        if (encryptedString == null || myDecryptionKey == null) {
-            return NULL_PARAMETER_MESSAGE;
-        }
-
-        if (encryptedString.length() == 0) {
-            return EMPTY_PARAMETER_MESSAGE;
-        }
-        try {
-            String decryptedText = null;
-
-            String myDecryptionScheme = DES_ENCRYPTION_SCHEME;
-
-            byte[] keyAsBytes = myDecryptionKey.getBytes(UNICODE_FORMAT);
-
-            KeySpec myKeySpec = new DESKeySpec(keyAsBytes);
-            Cipher decipher = Cipher.getInstance(myDecryptionScheme);
-            SecretKeyFactory mySecretKeyFactory = SecretKeyFactory.getInstance(myDecryptionScheme);
-            SecretKey key = mySecretKeyFactory.generateSecret(myKeySpec);
-
-            decipher.init(Cipher.DECRYPT_MODE, key);
-            byte[] encryptedText = b64Dencoder.decodeBuffer(encryptedString);
-            byte[] plainText = decipher.doFinal(encryptedText);
-
-            StringBuilder stringBuilder = new StringBuilder();
-            for (byte element : plainText) {
-                stringBuilder.append((char) element);
-            }
-            decryptedText = stringBuilder.toString();
-            return decryptedText;
-
-        } catch (Exception e) {
-            throw new DataMaskingRoutineException(e.getMessage(), e);
-        }
-
     }
 
     /**
